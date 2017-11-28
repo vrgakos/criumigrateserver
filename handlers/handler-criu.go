@@ -8,6 +8,7 @@ import (
 	"os/exec"
 	"os"
 	"bytes"
+	"strconv"
 )
 
 func CriuPreDump(w http.ResponseWriter, r *http.Request) {
@@ -29,7 +30,7 @@ func CriuPreDump(w http.ResponseWriter, r *http.Request) {
 
 	args := []string {
 		"pre-dump",
-		"--tree", string(req.Pid),
+		"--tree", strconv.Itoa(req.Pid),
 	}
 	if len(req.Path) > 0 {
 		args = append(args, "--images-dir", req.Path)
@@ -82,7 +83,7 @@ func CriuDump(w http.ResponseWriter, r *http.Request) {
 	args := []string {
 		"dump",
 		"--leave-stopped",
-		"--tree", string(req.Pid),
+		"--tree", strconv.Itoa(req.Pid),
 	}
 	if len(req.Path) > 0 {
 		args = append(args, "--images-dir", req.Path)
@@ -96,7 +97,7 @@ func CriuDump(w http.ResponseWriter, r *http.Request) {
 	if req.Lazy {
 		args = append(args, "--lazy-pages")
 		args = append(args, "--address", "0.0.0.0")
-		args = append(args, "--port", string(req.LazyPort))
+		args = append(args, "--port", strconv.Itoa(req.LazyPort))
 		args = append(args, "--status-fd", "1")				// STDOUT
 	}
 	if req.ShellJob {
@@ -218,7 +219,7 @@ func CriuLazyPages(w http.ResponseWriter, r *http.Request) {
 		"lazy-pages",
 		"--page-server",
 		"--address", req.Address,
-		"--port", string(req.Port),
+		"--port", strconv.Itoa(req.Port),
 	}
 
 	cmd := exec.Command("criu", args...)
