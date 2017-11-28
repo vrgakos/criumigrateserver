@@ -7,7 +7,6 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"os"
-	"golang.org/x/tools/go/gcimporter15/testdata"
 	"bytes"
 )
 
