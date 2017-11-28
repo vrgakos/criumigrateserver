@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os/exec"
+	"bytes"
 )
 
 func BaseScp(w http.ResponseWriter, r *http.Request) {
@@ -26,12 +27,18 @@ func BaseScp(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := exec.Command("scp", req.From, req.To)
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	cmd.Stderr = &b
+	printCommand(cmd)
+
 	if err := cmd.Start(); err != nil {
 		panic(err)
 	}
 	if err := cmd.Wait(); err != nil {
 		panic(err)
 	}
+	printOutput(b.Bytes())
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)
@@ -60,12 +67,18 @@ func BaseClean(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := exec.Command("rm", "-rf", req.Path)
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	cmd.Stderr = &b
+	printCommand(cmd)
+
 	if err := cmd.Start(); err != nil {
 		panic(err)
 	}
 	if err := cmd.Wait(); err != nil {
 		panic(err)
 	}
+	printOutput(b.Bytes())
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)

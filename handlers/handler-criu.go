@@ -7,6 +7,8 @@ import (
 	"io/ioutil"
 	"os/exec"
 	"os"
+	"golang.org/x/tools/go/gcimporter15/testdata"
+	"bytes"
 )
 
 func CriuPreDump(w http.ResponseWriter, r *http.Request) {
@@ -39,12 +41,18 @@ func CriuPreDump(w http.ResponseWriter, r *http.Request) {
 
 	os.MkdirAll(req.Path, os.ModePerm)
 	cmd := exec.Command("criu", args...)
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	cmd.Stderr = &b
+	printCommand(cmd)
+
 	if err := cmd.Start(); err != nil {
 		panic(err)
 	}
 	if err := cmd.Wait(); err != nil {
 		panic(err)
 	}
+	printOutput(b.Bytes())
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)
@@ -98,6 +106,9 @@ func CriuDump(w http.ResponseWriter, r *http.Request) {
 
 	os.MkdirAll(req.Path, os.ModePerm)
 	cmd := exec.Command("criu", args...)
+	var b bytes.Buffer
+	cmd.Stderr = &b
+	printCommand(cmd)
 
 	var stdout io.ReadCloser
 	if req.Lazy {
@@ -105,6 +116,8 @@ func CriuDump(w http.ResponseWriter, r *http.Request) {
 		if err != nil {
 			panic(err)
 		}
+	} else {
+		cmd.Stdout = &b
 	}
 
 	if err := cmd.Start(); err != nil {
@@ -122,6 +135,7 @@ func CriuDump(w http.ResponseWriter, r *http.Request) {
 		if err := cmd.Wait(); err != nil {
 			panic(err)
 		}
+		printOutput(b.Bytes())
 	}
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
@@ -132,7 +146,7 @@ func CriuDump(w http.ResponseWriter, r *http.Request) {
 }
 
 func CriuRestore(w http.ResponseWriter, r *http.Request) {
-	var req RequestPreDump
+	var req RequestRestore
 	body, err := ioutil.ReadAll(io.LimitReader(r.Body, 1048576))
 	if err != nil {
 		panic(err)
@@ -150,22 +164,30 @@ func CriuRestore(w http.ResponseWriter, r *http.Request) {
 
 	args := []string {
 		"restore",
-		"--tree", string(req.Pid),
 	}
 	if len(req.Path) > 0 {
 		args = append(args, "--images-dir", req.Path)
 	}
-	if req.TrackMem {
-		args = append(args, "--track-mem")
+	if req.Lazy {
+		args = append(args, "--lazy-pages")
+	}
+	if req.ShellJob {
+		args = append(args, "--shell-job")
 	}
 
 	cmd := exec.Command("criu", args...)
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	cmd.Stderr = &b
+	printCommand(cmd)
+
 	if err := cmd.Start(); err != nil {
 		panic(err)
 	}
 	if err := cmd.Wait(); err != nil {
 		panic(err)
 	}
+	printOutput(b.Bytes())
 
 	w.Header().Set("Content-Type", "application/json; charset=UTF-8")
 	w.WriteHeader(200)
@@ -201,6 +223,10 @@ func CriuLazyPages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := exec.Command("criu", args...)
+	var b bytes.Buffer
+	cmd.Stdout = &b
+	cmd.Stderr = &b
+	printCommand(cmd)
 	cmd.Dir = req.Path
 
 	stdout, err := cmd.StdoutPipe()
@@ -212,8 +238,8 @@ func CriuLazyPages(w http.ResponseWriter, r *http.Request) {
 		panic(err)
 	}
 
-	b, _ := ioutil.ReadAll(stdout)
-	if len(b) == 1 && b[0] == 0 {
+	b2, _ := ioutil.ReadAll(stdout)
+	if len(b2) == 1 && b2[0] == 0 {
 		// ok
 	} else {
 		panic("Invalid status-fd return")
