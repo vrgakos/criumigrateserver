@@ -221,6 +221,7 @@ func CriuLazyPages(w http.ResponseWriter, r *http.Request) {
 		"--page-server",
 		"--address", req.Address,
 		"--port", strconv.Itoa(req.Port),
+		"--status-fd", "1",					// STDOUT
 	}
 
 	cmd := exec.Command("criu", args...)
