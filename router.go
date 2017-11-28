@@ -28,11 +28,11 @@ var routes = Routes{
 	Route{
 		"BaseScp",
 		"POST",
-		"/base/copy",
+		"/base/scp",
 		handlers.BaseScp,
 	},
 	Route{
-		"BaseCopy",
+		"BaseClean",
 		"POST",
 		"/base/clean",
 		handlers.BaseClean,
