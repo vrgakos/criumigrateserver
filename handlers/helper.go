@@ -8,7 +8,8 @@ import (
 )
 
 func printCommand(cmd *exec.Cmd) {
-	fmt.Printf("==> Executing: %s\n", strings.Join(cmd.Args, " "))
+	fmt.Printf("==> Executing in directory: %s\n", cmd.Dir)
+	fmt.Printf("==>   command line: %s\n", strings.Join(cmd.Args, " "))
 }
 
 func printError(err error) {

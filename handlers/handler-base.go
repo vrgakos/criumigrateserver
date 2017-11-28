@@ -26,17 +26,17 @@ func BaseScp(w http.ResponseWriter, r *http.Request) {
 		}
 	}
 
-	cmd := exec.Command("scp", req.From, req.To)
+	cmd := exec.Command("scp", "-r", req.From, req.To)
 	var b bytes.Buffer
 	cmd.Stdout = &b
 	cmd.Stderr = &b
 	printCommand(cmd)
 
 	if err := cmd.Start(); err != nil {
-		panic(err)
+		printError(err)
 	}
 	if err := cmd.Wait(); err != nil {
-		panic(err)
+		printError(err)
 	}
 	printOutput(b.Bytes())
 
@@ -73,10 +73,10 @@ func BaseClean(w http.ResponseWriter, r *http.Request) {
 	printCommand(cmd)
 
 	if err := cmd.Start(); err != nil {
-		panic(err)
+		printError(err)
 	}
 	if err := cmd.Wait(); err != nil {
-		panic(err)
+		printError(err)
 	}
 	printOutput(b.Bytes())
 

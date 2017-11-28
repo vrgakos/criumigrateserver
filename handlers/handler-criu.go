@@ -47,10 +47,10 @@ func CriuPreDump(w http.ResponseWriter, r *http.Request) {
 	printCommand(cmd)
 
 	if err := cmd.Start(); err != nil {
-		panic(err)
+		printError(err)
 	}
 	if err := cmd.Wait(); err != nil {
-		panic(err)
+		printError(err)
 	}
 	printOutput(b.Bytes())
 
@@ -121,7 +121,7 @@ func CriuDump(w http.ResponseWriter, r *http.Request) {
 	}
 
 	if err := cmd.Start(); err != nil {
-		panic(err)
+		printError(err)
 	}
 
 	if req.Lazy {
@@ -133,7 +133,7 @@ func CriuDump(w http.ResponseWriter, r *http.Request) {
 		}
 	} else {
 		if err := cmd.Wait(); err != nil {
-			panic(err)
+			printError(err)
 		}
 		printOutput(b.Bytes())
 	}
@@ -176,16 +176,17 @@ func CriuRestore(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := exec.Command("criu", args...)
+	cmd.Dir = req.Path
 	var b bytes.Buffer
 	cmd.Stdout = &b
 	cmd.Stderr = &b
 	printCommand(cmd)
 
 	if err := cmd.Start(); err != nil {
-		panic(err)
+		printError(err)
 	}
 	if err := cmd.Wait(); err != nil {
-		panic(err)
+		printError(err)
 	}
 	printOutput(b.Bytes())
 
@@ -223,19 +224,18 @@ func CriuLazyPages(w http.ResponseWriter, r *http.Request) {
 	}
 
 	cmd := exec.Command("criu", args...)
+	cmd.Dir = req.Path
 	var b bytes.Buffer
-	cmd.Stdout = &b
 	cmd.Stderr = &b
 	printCommand(cmd)
-	cmd.Dir = req.Path
 
 	stdout, err := cmd.StdoutPipe()
 	if err != nil {
-		panic(err)
+		printError(err)
 	}
 
 	if err := cmd.Start(); err != nil {
-		panic(err)
+		printError(err)
 	}
 
 	b2, _ := ioutil.ReadAll(stdout)
