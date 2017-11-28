@@ -6,6 +6,7 @@ import (
 	"io"
 	"io/ioutil"
 	"os/exec"
+	"os"
 )
 
 func CriuPreDump(w http.ResponseWriter, r *http.Request) {
@@ -36,6 +37,7 @@ func CriuPreDump(w http.ResponseWriter, r *http.Request) {
 		args = append(args, "--track-mem")
 	}
 
+	os.MkdirAll(req.Path, os.ModePerm)
 	cmd := exec.Command("criu", args...)
 	if err := cmd.Start(); err != nil {
 		panic(err)
@@ -94,6 +96,7 @@ func CriuDump(w http.ResponseWriter, r *http.Request) {
 		args = append(args, "--shell-job")
 	}
 
+	os.MkdirAll(req.Path, os.ModePerm)
 	cmd := exec.Command("criu", args...)
 
 	var stdout io.ReadCloser
